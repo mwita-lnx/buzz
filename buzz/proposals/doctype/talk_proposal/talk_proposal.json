@@ -15,7 +15,9 @@
   "column_break_kemm",
   "speakers",
   "section_break_ouiw",
-  "phone"
+  "phone",
+  "section_break_additional",
+  "additional_fields"
  ],
  "fields": [
   {
@@ -76,6 +78,16 @@
    "fieldname": "phone",
    "fieldtype": "Phone",
    "label": "Phone"
+  },
+  {
+   "fieldname": "section_break_additional",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "additional_fields",
+   "fieldtype": "Table",
+   "label": "Additional Fields",
+   "options": "Additional Field"
   }
  ],
  "grid_page_length": 50,

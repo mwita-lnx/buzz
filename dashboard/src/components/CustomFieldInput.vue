@@ -1,5 +1,4 @@
 <template>
-	<!-- Date field -->
 	<div v-if="isDateField(field.fieldtype)" class="space-y-1.5">
 		<label class="text-xs text-ink-gray-5 block">
 			{{ __(field.label) }}
@@ -12,7 +11,6 @@
 		/>
 	</div>
 
-	<!-- DateTime field -->
 	<div v-else-if="isDateTimeField(field.fieldtype)" class="space-y-1.5">
 		<label class="text-xs text-ink-gray-5 block">
 			{{ __(field.label) }}
@@ -37,7 +35,6 @@
 		/>
 	</div>
 
-	<!-- Checkbox field -->
 	<FormControl
 		v-else-if="field.fieldtype === 'Check'"
 		type="checkbox"
@@ -46,13 +43,116 @@
 		:label="__(field.label)"
 	/>
 
-	<!-- All other field types -->
+	<PhoneInput
+		v-else-if="field.fieldtype === 'Phone'"
+		:model-value="modelValue"
+		@update:model-value="$emit('update:modelValue', $event)"
+		:label="field.label"
+		:required="field.mandatory"
+		:placeholder="getFieldPlaceholder(field)"
+	/>
+
+	<FormControl
+		v-else-if="field.fieldtype === 'Link'"
+		:model-value="modelValue"
+		@update:model-value="$emit('update:modelValue', $event)"
+		:label="__(field.label)"
+		type="select"
+		:options="linkFieldOptions"
+		:required="field.mandatory"
+		:placeholder="getFieldPlaceholder(field)"
+	/>
+
+	<div v-else-if="isTextareaField(field.fieldtype)" class="space-y-1.5">
+		<label class="text-xs text-ink-gray-5 block">
+			{{ __(field.label) }}
+			<span v-if="field.mandatory" class="text-ink-red-4">*</span>
+		</label>
+		<Textarea
+			:model-value="modelValue"
+			@update:model-value="$emit('update:modelValue', $event)"
+			:placeholder="getFieldPlaceholder(field)"
+			:required="field.mandatory"
+			variant="outline"
+		/>
+	</div>
+
+	<div v-else-if="field.fieldtype === 'Rating'" class="space-y-1.5">
+		<label class="text-xs text-ink-gray-5 block">
+			{{ __(field.label) }}
+			<span v-if="field.mandatory" class="text-ink-red-4">*</span>
+		</label>
+		<div class="flex">
+			<div
+				v-for="index in 5"
+				:key="index"
+				@mouseover="hoveredRating = index"
+				@mouseleave="hoveredRating = 0"
+			>
+				<LucideStar
+					class="size-6 stroke-1 mr-1 cursor-pointer transition-colors"
+					:class="starClasses(index)"
+					@click="$emit('update:modelValue', index / 5)"
+				/>
+			</div>
+		</div>
+	</div>
+
+	<div v-else-if="field.fieldtype === 'Attach Image'" class="space-y-1.5">
+		<label class="text-xs text-ink-gray-5 block">
+			{{ __(field.label) }}
+			<span v-if="field.mandatory" class="text-ink-red-4">*</span>
+		</label>
+		<div v-if="modelValue" class="flex items-center gap-2">
+			<img :src="modelValue" class="h-16 w-16 rounded object-cover border" />
+			<Button variant="ghost" size="sm" @click="$emit('update:modelValue', '')">
+				{{ __("Remove") }}
+			</Button>
+		</div>
+		<FileUploader
+			v-else
+			@success="(file) => $emit('update:modelValue', file.file_url)"
+			:validateFile="validateImageFile"
+		>
+			<template #default="{ openFileSelector }">
+				<Button variant="outline" @click="openFileSelector">
+					{{ __("Upload Image") }}
+				</Button>
+			</template>
+		</FileUploader>
+	</div>
+
+	<div v-else-if="field.fieldtype === 'Attach'" class="space-y-1.5">
+		<label class="text-xs text-ink-gray-5 block">
+			{{ __(field.label) }}
+			<span v-if="field.mandatory" class="text-ink-red-4">*</span>
+		</label>
+		<div v-if="modelValue" class="flex items-center gap-2">
+			<a :href="modelValue" target="_blank" class="text-sm text-ink-blue-3 underline truncate max-w-xs">
+				{{ modelValue.split("/").pop() }}
+			</a>
+			<Button variant="ghost" size="sm" @click="$emit('update:modelValue', '')">
+				{{ __("Remove") }}
+			</Button>
+		</div>
+		<FileUploader
+			v-else
+			@success="(file) => $emit('update:modelValue', file.file_url)"
+		>
+			<template #default="{ openFileSelector }">
+				<Button variant="outline" @click="openFileSelector">
+					{{ __("Upload File") }}
+				</Button>
+			</template>
+		</FileUploader>
+	</div>
+
 	<FormControl
 		v-else
 		:model-value="modelValue"
 		@update:model-value="$emit('update:modelValue', $event)"
 		:label="__(field.label)"
-		:type="getFormControlType(field.fieldtype)"
+		:type="getFormControlType(field.fieldtype, field.options)"
 		:options="getFieldOptions(field)"
 		:required="field.mandatory"
 		:placeholder="getFieldPlaceholder(field)"
@@ -60,15 +160,25 @@
 </template>
 
 <script setup>
+import PhoneInput from "@/components/PhoneInput.vue"
 import {
 	getFieldOptions,
 	getFieldPlaceholder,
 	getFormControlType,
 	isDateField,
 	isDateTimeField,
-} from "@/composables/useCustomFields";
-import { DatePicker, DateTimePicker, MultiSelect } from "frappe-ui";
-import { computed } from "vue";
+	isTextareaField,
+} from "@/composables/useCustomFields"
+import {
+	Button,
+	DatePicker,
+	DateTimePicker,
+	FileUploader,
+	MultiSelect,
+	Textarea,
+} from "frappe-ui"
+import { computed, ref } from "vue"
+import LucideStar from "~icons/lucide/star"
 
 const props = defineProps({
 	field: {
@@ -94,5 +204,42 @@ const multiSelectProxy = computed({
 			model.value = values.join(",");
 		}
 	},
-});
+})
+
+const linkFieldOptions = computed(() => {
+	if (!props.field.link_options) return []
+	return props.field.link_options.map((name) => ({
+		label: name,
+		value: name,
+	}))
+})
+
+const hoveredRating = ref(0)
+const ratingValue = computed(() => {
+	const val = Number(model.value) || 0
+	return Math.round(val * 5)
+})
+
+function starClasses(index) {
+	if (index <= hoveredRating.value && index > ratingValue.value) {
+		return "fill-yellow-200 text-yellow-200"
+	}
+	if (index <= ratingValue.value) {
+		return "fill-yellow-500 text-yellow-500"
+	}
+	return "fill-gray-400 text-gray-50"
+}
+
+function validateImageFile(file) {
+	const validTypes = [
+		"image/jpeg",
+		"image/png",
+		"image/gif",
+		"image/webp",
+		"image/svg+xml",
+	]
+	if (!validTypes.includes(file.type)) {
+		return __("Please upload a valid image file (JPEG, PNG, GIF, WebP, SVG)")
+	}
+}
 </script>

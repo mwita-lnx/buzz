@@ -74,8 +74,17 @@
   "column_break_ukql",
   "attach_email_ticket",
   "ticket_print_format",
+  "forms_section",
+  "accept_talk_proposals",
+  "accept_event_feedback",
+  "column_break_forms",
+  "accept_sponsorship_enquiries",
   "talks_section",
   "allow_editing_talks_after_acceptance",
+  "success_messages_section",
+  "feedback_success_message",
+  "proposal_success_message",
+  "sponsorship_success_message",
   "connections_tab",
   "proposal"
  ],
@@ -243,6 +252,34 @@
    "options": "Print Format"
   },
   {
+   "fieldname": "forms_section",
+   "fieldtype": "Section Break",
+   "label": "Forms"
+  },
+  {
+   "default": "0",
+   "fieldname": "accept_talk_proposals",
+   "fieldtype": "Check",
+   "label": "Accept Talk Proposals"
+  },
+  {
+   "default": "0",
+   "fieldname": "accept_event_feedback",
+   "fieldtype": "Check",
+   "label": "Accept Event Feedback"
+  },
+  {
+   "fieldname": "column_break_forms",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "accept_sponsorship_enquiries",
+   "fieldtype": "Check",
+   "label": "Accept Sponsorship Enquiries"
+  },
+  {
+   "depends_on": "eval:doc.accept_talk_proposals",
    "fieldname": "talks_section",
    "fieldtype": "Section Break",
    "label": "Talks"
@@ -355,6 +392,32 @@
    "fieldname": "free_webinar",
    "fieldtype": "Check",
    "label": "Free Webinar?"
+  },
+  {
+   "fieldname": "success_messages_section",
+   "fieldtype": "Section Break",
+   "label": "Success Messages"
+  },
+  {
+   "depends_on": "eval:doc.accept_event_feedback",
+   "description": "Shown after feedback submission. Supports Markdown.",
+   "fieldname": "feedback_success_message",
+   "fieldtype": "Markdown Editor",
+   "label": "Feedback Success Message"
+  },
+  {
+   "depends_on": "eval:doc.accept_talk_proposals",
+   "description": "Shown after talk proposal submission. Supports Markdown.",
+   "fieldname": "proposal_success_message",
+   "fieldtype": "Markdown Editor",
+   "label": "Proposal Success Message"
+  },
+  {
+   "depends_on": "eval:doc.accept_sponsorship_enquiries",
+   "description": "Shown after sponsorship enquiry submission. Supports Markdown.",
+   "fieldname": "sponsorship_success_message",
+   "fieldtype": "Markdown Editor",
+   "label": "Sponsorship Success Message"
   },
   {
    "fieldname": "connections_tab",
@@ -483,6 +546,7 @@
    "label": "Registrations Close At"
   },
   {
+   "depends_on": "eval:doc.accept_talk_proposals",
    "fieldname": "talk_proposals_close_at",
    "fieldtype": "Datetime",
    "label": "Talk Proposals Close At"
@@ -492,6 +556,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.accept_sponsorship_enquiries",
    "fieldname": "sponsorship_proposals_close_at",
    "fieldtype": "Datetime",
    "label": "Sponsorship Proposals Close At"

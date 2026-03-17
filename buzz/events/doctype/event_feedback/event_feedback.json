@@ -6,7 +6,9 @@
  "engine": "InnoDB",
  "field_order": [
   "event",
-  "how_can_we_improve"
+  "how_can_we_improve",
+  "section_break_additional",
+  "additional_fields"
  ],
  "fields": [
   {
@@ -21,6 +23,16 @@
    "fieldname": "how_can_we_improve",
    "fieldtype": "Small Text",
    "label": "How can we improve?"
+  },
+  {
+   "fieldname": "section_break_additional",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "additional_fields",
+   "fieldtype": "Table",
+   "label": "Additional Fields",
+   "options": "Additional Field"
   }
  ],
  "grid_page_length": 50,
@@ -43,6 +55,12 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Buzz User"
   }
  ],
  "row_format": "Dynamic",

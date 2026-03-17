@@ -22,6 +22,27 @@ const routes: RouteRecordRaw[] = [
 		component: () => import("@/pages/BookTickets.vue"),
 	},
 	{
+		path: "/events/:eventRoute/feedback",
+		props: true,
+		name: "event-feedback",
+		meta: { isPublic: true },
+		component: () => import("@/pages/FeedbackForm.vue"),
+	},
+	{
+		path: "/events/:eventRoute/propose-talk",
+		props: true,
+		name: "propose-talk",
+		meta: { isPublic: true },
+		component: () => import("@/pages/ProposeTalkForm.vue"),
+	},
+	{
+		path: "/events/:eventRoute/enquire-sponsorship",
+		props: true,
+		name: "enquire-sponsorship",
+		meta: { isPublic: true },
+		component: () => import("@/pages/EnquireSponsorshipForm.vue"),
+	},
+	{
 		path: "/register-interest/:campaign",
 		props: true,
 		name: "register-interest",

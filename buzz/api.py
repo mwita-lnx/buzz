@@ -1,11 +1,13 @@
 import os
 from base64 import b32encode
+from functools import lru_cache
 
 import frappe
 import pyotp
 from frappe import _
 from frappe.auth import LoginAttemptTracker
 from frappe.rate_limiter import rate_limit
+from frappe.geo.country_info import get_all as get_all_countries
 from frappe.translate import get_all_translations
 from frappe.utils import (
 	days_diff,
@@ -14,6 +16,7 @@ from frappe.utils import (
 	get_datetime,
 	get_datetime_in_timezone,
 	get_system_timezone,
+	now_datetime,
 	today,
 	validate_email_address,
 )
@@ -22,6 +25,46 @@ from buzz.payments import get_payment_gateways_for_event, get_payment_link_for_b
 from buzz.utils import is_app_installed
 
 OFFLINE_PAYMENT_METHOD = "Offline"
+LAYOUT_FIELDTYPES = {"Section Break", "Column Break", "Tab Break"}
+
+CUSTOM_FORM_CONFIG = {
+	"Event Feedback": {
+		"applied_to": "Event Feedback",
+		"enabled_field": "accept_event_feedback",
+		"exclude_fields": {
+			"name", "owner", "creation", "modified", "modified_by",
+			"docstatus", "idx", "additional_fields", "event",
+			"section_break_additional",
+		},
+		"auto_set": {"event": "from_route"},
+		"deadline_field": None,
+		"success_message_field": "feedback_success_message",
+	},
+	"Talk Proposal": {
+		"applied_to": "Talk Proposal",
+		"enabled_field": "accept_talk_proposals",
+		"exclude_fields": {
+			"name", "owner", "creation", "modified", "modified_by",
+			"docstatus", "idx", "submitted_by", "status",
+			"additional_fields", "event", "section_break_additional",
+		},
+		"auto_set": {"event": "from_route", "submitted_by": "session_user"},
+		"deadline_field": "talk_proposals_close_at",
+		"success_message_field": "proposal_success_message",
+	},
+	"Sponsorship Enquiry": {
+		"applied_to": "Sponsorship Enquiry",
+		"enabled_field": "accept_sponsorship_enquiries",
+		"exclude_fields": {
+			"name", "owner", "creation", "modified", "modified_by",
+			"docstatus", "idx", "status", "additional_fields", "event",
+			"section_break_additional",
+		},
+		"auto_set": {"event": "from_route"},
+		"deadline_field": "sponsorship_proposals_close_at",
+		"success_message_field": "sponsorship_success_message",
+	},
+}
 
 
 @frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
@@ -1400,3 +1443,216 @@ def register_campaign_interest(campaign: str):
 		}
 	)
 	lead.insert(ignore_permissions=True)
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_dial_codes() -> list:
+	return _get_dial_codes()
+
+
+@lru_cache(maxsize=1)
+def _get_dial_codes() -> list:
+	data = get_all_countries()
+	codes = []
+	seen = set()
+	for country in sorted(data):
+		info = data[country]
+		isd = info.get("isd", "")
+		code = (info.get("code") or "").upper()
+		if isd and isd not in seen:
+			codes.append({"country": country, "code": code, "dial_code": isd})
+			seen.add(isd)
+	return codes
+
+
+
+def get_form_fields(doctype: str, exclude_fields: set) -> list:
+	meta = frappe.get_meta(doctype)
+	fields = []
+	for df in meta.fields:
+		if df.fieldname in exclude_fields:
+			continue
+		if df.fieldtype in LAYOUT_FIELDTYPES:
+			continue
+		if df.hidden:
+			continue
+		if df.read_only:
+			continue
+		field_data = {
+			"fieldname": df.fieldname,
+			"fieldtype": df.fieldtype,
+			"label": df.label or df.fieldname,
+			"options": df.options,
+			"reqd": df.reqd,
+			"default": df.default,
+			"description": df.description,
+		}
+		if df.fieldtype == "Link" and df.options:
+			link_values = frappe.get_all(
+				df.options,
+				fields=["name"],
+				limit_page_length=0,
+				order_by="name asc",
+			)
+			field_data["link_options"] = [d.name for d in link_values]
+		if df.fieldtype == "Table" and df.options:
+			child_meta = frappe.get_meta(df.options)
+			child_fields = []
+			for child_df in child_meta.fields:
+				if child_df.fieldtype in LAYOUT_FIELDTYPES:
+					continue
+				if child_df.hidden:
+					continue
+				child_fields.append({
+					"fieldname": child_df.fieldname,
+					"fieldtype": child_df.fieldtype,
+					"label": child_df.label or child_df.fieldname,
+					"options": child_df.options,
+					"reqd": child_df.reqd,
+				})
+			field_data["child_fields"] = child_fields
+		fields.append(field_data)
+	return fields
+
+
+def validate_custom_form(event_route: str, form_type: str) -> None:
+	if form_type not in CUSTOM_FORM_CONFIG:
+		frappe.throw(_("Invalid form type"), frappe.ValidationError)
+
+	config = CUSTOM_FORM_CONFIG[form_type]
+
+	event_name = frappe.db.get_value("Buzz Event", {"route": event_route}, "name")
+	if not event_name:
+		frappe.throw(_("Event not found"), frappe.DoesNotExistError)
+	event_doc = frappe.get_cached_doc("Buzz Event", event_name)
+
+	if not event_doc.is_published:
+		frappe.throw(_("Event not found"), frappe.DoesNotExistError)
+
+	if not event_doc.get(config["enabled_field"]):
+		frappe.throw(_("This form is not available for this event"), frappe.DoesNotExistError)
+
+
+@frappe.whitelist(allow_guest=True)
+def get_custom_form_data(event_route: str, form_type: str) -> dict:
+	validate_custom_form(event_route, form_type)
+
+	config = CUSTOM_FORM_CONFIG[form_type]
+	event_doc = frappe.get_cached_doc(
+		"Buzz Event",
+		frappe.db.get_value("Buzz Event", {"route": event_route}, "name"),
+	)
+
+	closed = False
+	closed_message = ""
+	deadline_field = config["deadline_field"]
+	if deadline_field:
+		deadline = event_doc.get(deadline_field)
+		if deadline and get_datetime(deadline) < now_datetime():
+			closed = True
+			closed_message = _("Submissions for this form have closed.")
+
+	form_fields = get_form_fields(form_type, config["exclude_fields"])
+
+	custom_fields = frappe.get_all(
+		"Buzz Custom Field",
+		filters={
+			"event": event_doc.name,
+			"applied_to": config["applied_to"],
+			"enabled": 1,
+		},
+		fields=["label", "fieldname", "fieldtype", "options", "mandatory", "placeholder", "default_value", "order"],
+		order_by="order asc",
+	)
+
+	success_message_field = config["success_message_field"]
+	success_message = event_doc.get(success_message_field) or ""
+
+	return {
+		"form_fields": form_fields,
+		"custom_fields": custom_fields,
+		"event": {
+			"name": event_doc.name,
+			"title": event_doc.title,
+			"route": event_doc.route,
+			"banner_image": event_doc.banner_image,
+			"start_date": event_doc.start_date,
+			"end_date": event_doc.end_date,
+			"start_time": event_doc.start_time,
+			"end_time": event_doc.end_time,
+			"time_zone": event_doc.time_zone,
+			"venue": event_doc.venue,
+			"medium": event_doc.medium,
+			"short_description": event_doc.short_description,
+		},
+		"closed": closed,
+		"closed_message": closed_message,
+		"success_message": success_message,
+	}
+
+
+@frappe.whitelist(allow_guest=True)
+def submit_custom_form(event_route: str, form_type: str, data: dict | str, custom_fields_data: dict | str | None = None) -> None:
+	validate_custom_form(event_route, form_type)
+
+	config = CUSTOM_FORM_CONFIG[form_type]
+	event_doc = frappe.get_cached_doc(
+		"Buzz Event",
+		frappe.db.get_value("Buzz Event", {"route": event_route}, "name"),
+	)
+
+	deadline_field = config["deadline_field"]
+	if deadline_field:
+		deadline = event_doc.get(deadline_field)
+		if deadline and get_datetime(deadline) < now_datetime():
+			frappe.throw(_("Submissions for this form have closed."))
+
+	data = frappe.parse_json(data) or {}
+	custom_fields_data = frappe.parse_json(custom_fields_data) or {}
+
+	doc_data = {"doctype": form_type}
+
+	for field, source in config["auto_set"].items():
+		if source == "from_route":
+			doc_data[field] = event_doc.name
+		elif source == "session_user":
+			doc_data[field] = frappe.session.user
+
+	allowed_fieldnames = {f["fieldname"] for f in get_form_fields(form_type, config["exclude_fields"])}
+	for fieldname, value in data.items():
+		if fieldname in allowed_fieldnames:
+			doc_data[fieldname] = value
+
+	meta = frappe.get_meta(form_type)
+	for df in meta.fields:
+		if df.fieldtype == "Table" and df.fieldname not in config["exclude_fields"]:
+			if df.fieldname in data and isinstance(data[df.fieldname], list):
+				doc_data[df.fieldname] = data[df.fieldname]
+
+	doc = frappe.get_doc(doc_data)
+
+	if custom_fields_data:
+		custom_field_definitions = frappe.get_all(
+			"Buzz Custom Field",
+			filters={
+				"event": event_doc.name,
+				"applied_to": config["applied_to"],
+				"enabled": 1,
+			},
+			fields=["fieldname", "label", "fieldtype"],
+		)
+		allowed_custom = {cf["fieldname"]: cf for cf in custom_field_definitions}
+
+		for fieldname, value in custom_fields_data.items():
+			if fieldname in allowed_custom and value not in (None, ""):
+				cf = allowed_custom[fieldname]
+				doc.append("additional_fields", {
+					"label": cf["label"],
+					"fieldname": fieldname,
+					"fieldtype": cf["fieldtype"],
+					"value": str(value),
+				})
+
+	doc.insert(ignore_permissions=True)

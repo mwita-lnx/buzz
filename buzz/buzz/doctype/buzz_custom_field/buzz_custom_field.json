@@ -51,7 +51,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "Data\nCheck\nSmall Text\nPhone\nEmail\nSelect\nDate\nNumber\nMulti Select",
+   "options": "Data\nCheck\nSmall Text\nPhone\nEmail\nSelect\nDate\nNumber\nMulti Select\nRating\nAttach\nAttach Image",
    "reqd": 1
   },
   {
@@ -93,7 +93,7 @@
    "fieldname": "applied_to",
    "fieldtype": "Select",
    "label": "Applied To",
-   "options": "Booking\nTicket\nOffline Payment Form"
+   "options": "Booking\nTicket\nOffline Payment Form\nEvent Feedback\nTalk Proposal\nSponsorship Enquiry"
   },
   {
    "depends_on": "eval:doc.applied_to === 'Offline Payment Form'",

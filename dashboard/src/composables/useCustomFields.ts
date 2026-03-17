@@ -27,7 +27,10 @@ export interface SelectOption {
  * @param {string} fieldtype - Frappe field type
  * @returns {string} - FormControl type
  */
-export function getFormControlType(fieldtype: string): string {
+export function getFormControlType(fieldtype: string, options?: string): string {
+	if (fieldtype === "Data" && options === "Email") return "email"
+	if (fieldtype === "Data" && options === "URL") return "url"
+
 	switch (fieldtype) {
 		case "Phone":
 			return "text"
@@ -64,6 +67,10 @@ export function isDateField(fieldtype: string): boolean {
  */
 export function isDateTimeField(fieldtype: string): boolean {
 	return fieldtype === "Datetime"
+}
+
+export function isTextareaField(fieldtype: string): boolean {
+	return fieldtype === "Text Editor" || fieldtype === "Small Text"
 }
 
 /**

@@ -28,10 +28,9 @@
   },
   {
    "fieldname": "value",
-   "fieldtype": "Data",
+   "fieldtype": "Code",
    "in_list_view": 1,
-   "label": "Value",
-   "reqd": 1
+   "label": "Value"
   },
   {
    "fieldname": "column_break_nptw",
