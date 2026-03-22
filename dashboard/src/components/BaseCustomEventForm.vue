@@ -22,12 +22,12 @@
 		</div>
 
 		<div v-else-if="formData?.closed" class="text-center">
-			<div class="bg-surface-orange-1 border border-outline-orange-1 rounded-lg p-8">
-				<LucideAlertCircle class="w-16 h-16 text-ink-orange-3 mx-auto mb-4" />
-				<h2 class="text-ink-orange-3 font-semibold text-xl mb-2">
+			<div class="bg-surface-amber-1 border border-outline-amber-1 rounded-lg p-8">
+				<LucideAlertCircle class="w-16 h-16 text-ink-amber-3 mx-auto mb-4" />
+				<h2 class="text-ink-amber-3 font-semibold text-xl mb-2">
 					{{ __("Submissions Closed") }}
 				</h2>
-				<p class="text-ink-orange-2">
+				<p class="text-ink-amber-2">
 					{{ formData.closed_message }}
 				</p>
 			</div>
