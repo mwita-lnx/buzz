@@ -1,5 +1,5 @@
 import { test as setup } from "@playwright/test";
-import { createDoc, docExists, getList, updateDoc } from "../helpers/frappe";
+import { createDoc, docExists, getDoc, getList, updateDoc } from "../helpers/frappe";
 
 interface NamedDoc {
 	name: string;
@@ -54,11 +54,15 @@ setup("setup custom forms on test event", async ({ request }) => {
 
 	await updateDoc(request, "Buzz Event", eventName, {
 		custom_forms: [
-			{ form_doctype: "Event Feedback", route: "feedback", publish: 1 },
-			{ form_doctype: "Talk Proposal", route: "propose-talk", publish: 1 },
-			{ form_doctype: "Sponsorship Enquiry", route: "enquire-sponsorship", publish: 1 },
+			{ doctype: "Buzz Event Form", form_doctype: "Event Feedback", route: "feedback", publish: 1 },
+			{ doctype: "Buzz Event Form", form_doctype: "Talk Proposal", route: "propose-talk", publish: 1 },
+			{ doctype: "Buzz Event Form", form_doctype: "Sponsorship Enquiry", route: "enquire-sponsorship", publish: 1 },
 		],
 	});
 
-	console.log(`Custom forms enabled on event: ${eventName}`);
+	const updated = await getDoc<{ custom_forms: Array<{ route: string; publish: number }> }>(
+		request, "Buzz Event", eventName,
+	);
+	const publishedForms = (updated.custom_forms || []).filter((f) => f.publish);
+	console.log(`Custom forms enabled on event: ${eventName} (${publishedForms.length} forms: ${publishedForms.map((f) => f.route).join(", ")})`);
 });
