@@ -7,6 +7,7 @@ import pyotp
 from frappe import _
 from frappe.auth import LoginAttemptTracker
 from frappe.geo.country_info import get_all as get_all_countries
+from frappe.model import DEFAULT_FIELDS, display_fieldtypes
 from frappe.rate_limiter import rate_limit
 from frappe.translate import get_all_translations
 from frappe.utils import (
@@ -26,16 +27,9 @@ from buzz.payments import get_payment_gateways_for_event, get_payment_link_for_b
 from buzz.utils import is_app_installed
 
 OFFLINE_PAYMENT_METHOD = "Offline"
-LAYOUT_FIELDTYPES = {"Section Break", "Column Break", "Tab Break"}
+LAYOUT_FIELDTYPES = set(display_fieldtypes)
 
-STANDARD_EXCLUDE_FIELDS = {
-	"name",
-	"owner",
-	"creation",
-	"modified",
-	"modified_by",
-	"docstatus",
-	"idx",
+STANDARD_EXCLUDE_FIELDS = DEFAULT_FIELDS | {
 	"additional_fields",
 	"event",
 	"section_break_additional",
@@ -1503,7 +1497,7 @@ def get_form_fields(doctype: str, exclude_fields: set) -> list:
 
 
 def validate_custom_form(event_route: str, form_route: str):
-	event_name = frappe.db.get_value("Buzz Event", {"route": event_route}, "name")
+	event_name = frappe.get_cached_value("Buzz Event", {"route": event_route}, "name")
 	if not event_name:
 		frappe.throw(_("Event not found"), frappe.DoesNotExistError)
 	event_doc = frappe.get_cached_doc("Buzz Event", event_name)
@@ -1540,10 +1534,8 @@ def get_custom_form_data(event_route: str, form_route: str) -> dict:
 	form_doctype = form_row.form_doctype
 
 	closed = False
-	closed_message = ""
 	if form_row.auto_close_at and get_datetime(form_row.auto_close_at) < now_datetime():
 		closed = True
-		closed_message = _("Submissions for this form have closed.")
 
 	auto_set = get_auto_set_fields(form_doctype)
 	exclude_fields = STANDARD_EXCLUDE_FIELDS | set(auto_set.keys())
@@ -1592,7 +1584,9 @@ def get_custom_form_data(event_route: str, form_route: str) -> dict:
 			"short_description": event_doc.short_description,
 		},
 		"closed": closed,
-		"closed_message": closed_message,
+		"closed_title": form_row.closed_title or _("Submissions Closed"),
+		"closed_message": form_row.closed_message or _("Submissions for this form have closed."),
+		"success_title": form_row.success_title or _("Thank you!"),
 		"success_message": form_row.success_message or "",
 	}
 
@@ -1656,33 +1650,8 @@ def submit_custom_form(
 						"label": cf["label"],
 						"fieldname": fieldname,
 						"fieldtype": cf["fieldtype"],
-						"value": str(value),
+						"value": cstr(value),
 					},
 				)
 
 	doc.insert(ignore_permissions=True)
-
-
-@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
-def get_event_forms(event_route: str) -> list:
-	event_name = frappe.db.get_value("Buzz Event", {"route": event_route}, "name")
-	if not event_name:
-		frappe.throw(_("Event not found"), frappe.DoesNotExistError)
-
-	event_doc = frappe.get_cached_doc("Buzz Event", event_name)
-
-	if not event_doc.is_published:
-		frappe.throw(_("Event not found"), frappe.DoesNotExistError)
-
-	forms = []
-	for row in event_doc.custom_forms:
-		if row.publish:
-			forms.append(
-				{
-					"route": row.route,
-					"doctype": row.form_doctype,
-					"label": frappe.get_meta(row.form_doctype).name,
-				}
-			)
-
-	return forms

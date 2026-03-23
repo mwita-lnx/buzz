@@ -7,6 +7,7 @@ frappe.ui.form.on("Buzz Custom Field", {
 			return {
 				filters: {
 					istable: 0,
+					issingle: 0,
 				},
 			};
 		});

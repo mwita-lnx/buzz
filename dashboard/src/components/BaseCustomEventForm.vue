@@ -8,7 +8,7 @@
 			<div class="bg-surface-green-1 border border-outline-green-1 rounded-lg p-8">
 				<LucideCheckCircle class="w-16 h-16 text-ink-green-2 mx-auto mb-4" />
 				<h2 class="text-ink-green-3 font-semibold text-xl mb-2">
-					{{ __("Thank you!") }}
+					{{ formData.success_title }}
 				</h2>
 				<div
 					v-if="renderedSuccessMessage"
@@ -25,7 +25,7 @@
 			<div class="bg-surface-amber-1 border border-outline-amber-1 rounded-lg p-8">
 				<LucideAlertCircle class="w-16 h-16 text-ink-amber-3 mx-auto mb-4" />
 				<h2 class="text-ink-amber-3 font-semibold text-xl mb-2">
-					{{ __("Submissions Closed") }}
+					{{ formData.closed_title }}
 				</h2>
 				<p class="text-ink-amber-2">
 					{{ formData.closed_message }}

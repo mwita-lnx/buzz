@@ -71,10 +71,11 @@
   "column_break_ukql",
   "attach_email_ticket",
   "ticket_print_format",
-  "forms_section",
-  "custom_forms",
   "talks_section",
   "allow_editing_talks_after_acceptance",
+  "custom_forms_tab",
+  "forms_section",
+  "custom_forms",
   "connections_tab",
   "proposal"
  ],
@@ -243,8 +244,7 @@
   },
   {
    "fieldname": "forms_section",
-   "fieldtype": "Section Break",
-   "label": "Forms"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "custom_forms",
@@ -255,7 +255,7 @@
   {
    "fieldname": "talks_section",
    "fieldtype": "Section Break",
-   "label": "Talks Settings"
+   "label": "Talk Settings"
   },
   {
    "default": "0",
@@ -491,6 +491,11 @@
    "fieldname": "registrations_close_at",
    "fieldtype": "Datetime",
    "label": "Registrations Close At"
+  },
+  {
+   "fieldname": "custom_forms_tab",
+   "fieldtype": "Tab Break",
+   "label": "Forms"
   }
  ],
  "grid_page_length": 50,
@@ -568,7 +573,7 @@
    "link_fieldname": "event"
   }
  ],
- "modified": "2026-03-20 12:30:24.694877",
+ "modified": "2026-03-23 17:37:37.770911",
  "modified_by": "Administrator",
  "module": "Events",
  "name": "Buzz Event",

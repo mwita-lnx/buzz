@@ -11,7 +11,12 @@
   "publish",
   "column_break_main",
   "auto_close_at",
-  "success_message"
+  "section_break_success",
+  "success_title",
+  "success_message",
+  "section_break_closed",
+  "closed_title",
+  "closed_message"
  ],
  "fields": [
   {
@@ -46,9 +51,34 @@
    "label": "Auto Close At"
   },
   {
+   "fieldname": "section_break_success",
+   "fieldtype": "Section Break",
+   "label": "Success"
+  },
+  {
+   "fieldname": "success_title",
+   "fieldtype": "Data",
+   "label": "Success Title"
+  },
+  {
    "fieldname": "success_message",
    "fieldtype": "Markdown Editor",
    "label": "Success Message"
+  },
+  {
+   "fieldname": "section_break_closed",
+   "fieldtype": "Section Break",
+   "label": "Closed"
+  },
+  {
+   "fieldname": "closed_title",
+   "fieldtype": "Data",
+   "label": "Closed Title"
+  },
+  {
+   "fieldname": "closed_message",
+   "fieldtype": "Small Text",
+   "label": "Closed Message"
   }
  ],
  "grid_page_length": 50,

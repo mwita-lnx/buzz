@@ -39,7 +39,6 @@ class BuzzCustomField(Document):
 			self.create_additional_fields_if_missing()
 
 	def create_additional_fields_if_missing(self):
-		frappe.clear_cache(doctype=self.custom_form_doctype)
 		meta = frappe.get_meta(self.custom_form_doctype)
 
 		if meta.has_field("additional_fields"):
@@ -49,7 +48,6 @@ class BuzzCustomField(Document):
 			{
 				"doctype": "Custom Field",
 				"dt": self.custom_form_doctype,
-				"__islocal": 1,
 				"fieldname": "section_break_additional",
 				"label": "Additional Fields",
 				"fieldtype": "Section Break",
@@ -60,7 +58,6 @@ class BuzzCustomField(Document):
 			{
 				"doctype": "Custom Field",
 				"dt": self.custom_form_doctype,
-				"__islocal": 1,
 				"fieldname": "additional_fields",
 				"label": "Additional Fields",
 				"fieldtype": "Table",
@@ -69,7 +66,6 @@ class BuzzCustomField(Document):
 			}
 		).insert(ignore_permissions=True)
 
-		frappe.clear_cache(doctype=self.custom_form_doctype)
 		frappe.msgprint(
 			_("Added 'Additional Fields' table to {0}").format(self.custom_form_doctype),
 			alert=True,

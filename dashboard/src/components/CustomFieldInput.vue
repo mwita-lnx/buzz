@@ -82,20 +82,10 @@
 			{{ __(field.label) }}
 			<span v-if="field.mandatory" class="text-ink-red-4">*</span>
 		</label>
-		<div class="flex">
-			<div
-				v-for="index in 5"
-				:key="index"
-				@mouseover="hoveredRating = index"
-				@mouseleave="hoveredRating = 0"
-			>
-				<LucideStar
-					class="size-6 stroke-1 mr-1 cursor-pointer transition-colors"
-					:class="starClasses(index)"
-					@click="$emit('update:modelValue', index / 5)"
-				/>
-			</div>
-		</div>
+		<Rating
+			:model-value="Math.round((modelValue || 0) * 5)"
+			@update:model-value="$emit('update:modelValue', $event / 5)"
+		/>
 	</div>
 
 	<div v-else-if="field.fieldtype === 'Attach Image'" class="space-y-1.5">
@@ -176,10 +166,10 @@ import {
 	DateTimePicker,
 	FileUploader,
 	MultiSelect,
+	Rating,
 	Textarea,
 } from "frappe-ui";
-import { computed, ref } from "vue";
-import LucideStar from "~icons/lucide/star";
+import { computed } from "vue";
 
 const props = defineProps({
 	field: {
@@ -214,22 +204,6 @@ const linkFieldOptions = computed(() => {
 		value: name,
 	}));
 });
-
-const hoveredRating = ref(0);
-const ratingValue = computed(() => {
-	const val = Number(model.value) || 0;
-	return Math.round(val * 5);
-});
-
-function starClasses(index) {
-	if (index <= hoveredRating.value && index > ratingValue.value) {
-		return "fill-yellow-200 text-yellow-200";
-	}
-	if (index <= ratingValue.value) {
-		return "fill-yellow-500 text-yellow-500";
-	}
-	return "fill-gray-400 text-gray-50";
-}
 
 function validateImageFile(file) {
 	const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"];

@@ -16,7 +16,9 @@ class TalkProposal(Document):
 		from frappe.types import DF
 
 		from buzz.proposals.doctype.proposal_speaker.proposal_speaker import ProposalSpeaker
+		from buzz.ticketing.doctype.additional_field.additional_field import AdditionalField
 
+		additional_fields: DF.Table[AdditionalField]
 		description: DF.TextEditor | None
 		event: DF.Link
 		phone: DF.Phone | None

@@ -101,7 +101,6 @@ jobs:
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin buzz.test
           bench --site buzz.test install-app buzz
-          bench --site buzz.test migrate --skip-search-index
           bench build
         env:
           CI: "Yes"

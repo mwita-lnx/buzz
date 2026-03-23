@@ -68,7 +68,8 @@
    "fieldname": "speakers",
    "fieldtype": "Table",
    "label": "Speakers",
-   "options": "Proposal Speaker"
+   "options": "Proposal Speaker",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_ouiw",
@@ -98,7 +99,7 @@
    "link_fieldname": "proposal"
   }
  ],
- "modified": "2026-01-14 12:38:27.700962",
+ "modified": "2026-03-23 17:28:23.254661",
  "modified_by": "Administrator",
  "module": "Proposals",
  "name": "Talk Proposal",
