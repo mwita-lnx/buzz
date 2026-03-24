@@ -158,7 +158,6 @@ import CustomFieldInput from "@/components/CustomFieldInput.vue";
 import CustomFieldsSection from "@/components/CustomFieldsSection.vue";
 import EventDetailsHeader from "@/components/EventDetailsHeader.vue";
 import LoginRequired from "@/components/LoginRequired.vue";
-import { sessionUser } from "@/data/session";
 import { Button, Dialog, Spinner, createResource, toast } from "frappe-ui";
 import { marked } from "marked";
 import { computed, reactive, ref } from "vue";
@@ -262,10 +261,6 @@ const formDataResource = createResource({
 	},
 	auto: true,
 	onSuccess: (data) => {
-		if (!data.allow_guest_submission && !sessionUser()) {
-			loginRequired.value = true;
-			return;
-		}
 		formData.value = data;
 		for (const field of data.form_fields || []) {
 			if (field.default) {
@@ -274,6 +269,10 @@ const formDataResource = createResource({
 		}
 	},
 	onError: (err) => {
+		if (err.exc_type === "AuthenticationError") {
+			loginRequired.value = true;
+			return;
+		}
 		loadError.value = err.messages?.[0] || __("Form not found");
 	},
 });

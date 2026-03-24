@@ -5,7 +5,7 @@ from frappe import _
 from frappe.geo.country_info import get_all as get_all_countries
 from frappe.model import DEFAULT_FIELDS, display_fieldtypes
 from frappe.utils import get_datetime, now_datetime, today
-from frappe.utils.data import cstr
+from frappe.utils.data import cstr, sbool
 
 LAYOUT_FIELDTYPES = set(display_fieldtypes)
 
@@ -134,10 +134,42 @@ def get_auto_set_fields(form_doctype: str):
 def get_custom_form_data(event_route: str, form_route: str) -> dict:
 	event_doc, form_row = validate_custom_form(event_route, form_route)
 	form_doctype = form_row.form_doctype
+	allow_guest_submission = sbool(event_doc.allow_guest_booking)
+
+	if not allow_guest_submission and frappe.session.user == "Guest":
+		frappe.throw(_("Please log in to submit this form"), frappe.AuthenticationError)
+
+	event_data = {
+		"name": event_doc.name,
+		"title": event_doc.title,
+		"route": event_doc.route,
+		"banner_image": event_doc.banner_image,
+		"start_date": event_doc.start_date,
+		"end_date": event_doc.end_date,
+		"start_time": event_doc.start_time,
+		"end_time": event_doc.end_time,
+		"time_zone": event_doc.time_zone,
+		"venue": event_doc.venue,
+		"medium": event_doc.medium,
+		"short_description": event_doc.short_description,
+	}
 
 	closed = False
 	if form_row.auto_close_at and get_datetime(form_row.auto_close_at) < now_datetime():
 		closed = True
+
+	if closed:
+		return {
+			"form_fields": [],
+			"custom_fields": [],
+			"form_title": form_doctype,
+			"event": event_data,
+			"closed": True,
+			"closed_title": form_row.closed_title or _("Submissions Closed"),
+			"closed_message": form_row.closed_message or _("Submissions for this form have closed."),
+			"success_title": "",
+			"success_message": "",
+		}
 
 	auto_set = get_auto_set_fields(form_doctype)
 	exclude_fields = STANDARD_EXCLUDE_FIELDS | set(auto_set.keys())
@@ -171,26 +203,12 @@ def get_custom_form_data(event_route: str, form_route: str) -> dict:
 		"form_fields": form_fields,
 		"custom_fields": custom_fields,
 		"form_title": form_doctype_meta.name,
-		"event": {
-			"name": event_doc.name,
-			"title": event_doc.title,
-			"route": event_doc.route,
-			"banner_image": event_doc.banner_image,
-			"start_date": event_doc.start_date,
-			"end_date": event_doc.end_date,
-			"start_time": event_doc.start_time,
-			"end_time": event_doc.end_time,
-			"time_zone": event_doc.time_zone,
-			"venue": event_doc.venue,
-			"medium": event_doc.medium,
-			"short_description": event_doc.short_description,
-		},
-		"closed": closed,
+		"event": event_data,
+		"closed": False,
 		"closed_title": form_row.closed_title or _("Submissions Closed"),
 		"closed_message": form_row.closed_message or _("Submissions for this form have closed."),
 		"success_title": form_row.success_title or _("Thank you!"),
 		"success_message": form_row.success_message or "",
-		"allow_guest_submission": bool(event_doc.allow_guest_booking),
 	}
 
 

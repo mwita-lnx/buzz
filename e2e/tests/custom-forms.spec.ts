@@ -196,8 +196,25 @@ test.describe("Talk Proposal Form", () => {
 		await titleInput.fill("E2E Test Talk: Automated Testing Best Practices");
 
 		const textarea = page.locator("textarea").first();
-		if (await textarea.isVisible({ timeout: 1000 }).catch(() => false)) {
+		if (await textarea.isVisible({ timeout: 2000 }).catch(() => false)) {
 			await textarea.fill("This talk covers best practices for writing robust E2E tests.");
+		}
+
+		const addSpeakersButton = page.locator('button:has-text("Add Speakers")');
+		if (await addSpeakersButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+			await addSpeakersButton.click();
+
+			const dialog = page.locator('[role="dialog"]');
+			await expect(dialog).toBeVisible({ timeout: 5000 });
+
+			const firstNameInput = dialog.locator('label:has-text("First Name")').locator("..").locator("input").first();
+			await firstNameInput.fill("E2E Speaker");
+
+			const emailInput = dialog.locator('label:has-text("Email")').locator("..").locator("input").first();
+			await emailInput.fill("e2e-speaker@test.com");
+
+			const addButton = dialog.locator('button[type="submit"]');
+			await addButton.click();
 		}
 
 		const { succeeded, status } = await formPage.submitAndExpectResponse();
