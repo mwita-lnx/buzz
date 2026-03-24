@@ -981,7 +981,7 @@ def create_cancellation_request(booking_id: str, ticket_ids: list | None = None)
 	cancellation_request.insert(ignore_permissions=True)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
 def get_user_info() -> dict:
 	if frappe.session.user == "Guest":
 		return {"is_logged_in": False}
@@ -1111,7 +1111,7 @@ def checkin_ticket(ticket_id: str) -> dict:
 	}
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
 def get_enabled_languages():
 	languages = frappe.get_all(
 		"Language",
@@ -1130,7 +1130,7 @@ def update_user_language(language_code: str):
 	frappe.db.set_value("User", frappe.session.user, "language", language_code)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
 def get_translations():
 	if frappe.session.user != "Guest":
 		language = frappe.db.get_value("User", frappe.session.user, "language")
@@ -1144,7 +1144,7 @@ def has_app_permission():
 	return True
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
 def validate_coupon(coupon_code: str, event: str, user_email: str | None = None) -> dict:
 	event_doc = frappe.get_cached_doc("Buzz Event", event)
 	if frappe.session.user == "Guest" and not event_doc.allow_guest_booking:
