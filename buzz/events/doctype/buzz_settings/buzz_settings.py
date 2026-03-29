@@ -15,14 +15,19 @@ class BuzzSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		accept_event_proposals: DF.Check
 		allow_add_ons_change_before_event_start_days: DF.Int
+		allow_guest_event_proposals: DF.Check
 		allow_ticket_cancellation_request_before_event_start_days: DF.Int
 		allow_transfer_ticket_before_event_start_days: DF.Int
 		auto_send_pitch_deck: DF.Check
 		default_sponsor_deck_cc: DF.SmallText | None
 		default_sponsor_deck_email_template: DF.Link | None
-		default_sponsor_deck_reply_to: DF.Data
+		default_sponsor_deck_reply_to: DF.Data | None
 		default_ticket_email_template: DF.Link | None
+		event_proposal_banner_title: DF.Data | None
+		event_proposal_success_message: DF.MarkdownEditor | None
+		event_proposal_success_title: DF.Data | None
 		support_email: DF.Data | None
 	# end: auto-generated types
 

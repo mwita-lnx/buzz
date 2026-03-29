@@ -28,14 +28,16 @@
 
 		<div v-else-if="form_data">
 			<form
-				class="bg-surface-white border border-outline-gray-1 rounded-lg p-6"
+				class="bg-surface-white border border-outline-gray-1 rounded-lg"
 				@submit.prevent="handleSubmit"
 			>
-				<h1 class="text-ink-gray-9 font-bold text-2xl mb-6">
-					{{ form_data.form_title }}
-				</h1>
+				<div class="px-6 py-5 border-b border-outline-gray-1">
+					<h1 class="text-ink-gray-9 font-bold text-2xl">
+						{{ form_data.banner_title }}
+					</h1>
+				</div>
 
-				<div class="space-y-4">
+				<div class="p-6 space-y-4">
 					<CustomFieldInput
 						v-for="field in form_data.form_fields"
 						:key="field.fieldname"
@@ -45,25 +47,27 @@
 					/>
 				</div>
 
-				<Button
-					variant="solid"
-					size="lg"
-					class="w-full mt-6"
-					:loading="submit_resource.loading"
-					type="submit"
-				>
-					{{ __("Submit") }}
-				</Button>
+				<div class="px-6 pb-6">
+					<Button
+						variant="solid"
+						size="lg"
+						class="w-full"
+						:loading="submit_resource.loading"
+						type="submit"
+					>
+						{{ __("Submit") }}
+					</Button>
+				</div>
 			</form>
 		</div>
 
 		<div v-else-if="load_error" class="text-center">
-			<div class="bg-surface-red-1 border border-outline-red-1 rounded-lg p-8">
-				<LucideXCircle class="w-16 h-16 text-ink-red-2 mx-auto mb-4" />
-				<h2 class="text-ink-red-3 font-semibold text-xl mb-2">
+			<div class="bg-surface-amber-1 border border-outline-amber-1 rounded-lg p-8">
+				<LucideAlertCircle class="w-16 h-16 text-ink-amber-3 mx-auto mb-4" />
+				<h2 class="text-ink-amber-3 font-semibold text-xl mb-2">
 					{{ __("Not Found") }}
 				</h2>
-				<p class="text-ink-red-2">
+				<p class="text-ink-amber-2">
 					{{ load_error }}
 				</p>
 			</div>
@@ -77,8 +81,8 @@ import LoginRequired from "@/components/LoginRequired.vue";
 import { Button, Spinner, createResource, toast } from "frappe-ui";
 import { marked } from "marked";
 import { computed, reactive, ref } from "vue";
+import LucideAlertCircle from "~icons/lucide/alert-circle";
 import LucideCheckCircle from "~icons/lucide/check-circle";
-import LucideXCircle from "~icons/lucide/x-circle";
 
 const form_data = ref(null);
 const form_values = reactive({});

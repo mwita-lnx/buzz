@@ -16,7 +16,10 @@
   "proposals_tab",
   "event_proposals_section",
   "accept_event_proposals",
+  "event_proposal_banner_title",
+  "column_break_lxjh",
   "allow_guest_event_proposals",
+  "success_section",
   "event_proposal_success_title",
   "event_proposal_success_message",
   "communications_tab",
@@ -104,6 +107,12 @@
   },
   {
    "depends_on": "eval:doc.accept_event_proposals",
+   "fieldname": "event_proposal_banner_title",
+   "fieldtype": "Data",
+   "label": "Banner Title"
+  },
+  {
+   "depends_on": "eval:doc.accept_event_proposals",
    "fieldname": "event_proposal_success_title",
    "fieldtype": "Data",
    "label": "Success Title"
@@ -183,13 +192,23 @@
    "fieldname": "custom_fields_go_after_this",
    "fieldtype": "HTML",
    "label": "Custom Fields Go After This"
+  },
+  {
+   "fieldname": "column_break_lxjh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.accept_event_proposals",
+   "fieldname": "success_section",
+   "fieldtype": "Section Break",
+   "label": "Success"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-01-13 22:34:24.493305",
+ "modified": "2026-03-29 09:46:29.455686",
  "modified_by": "Administrator",
  "module": "Events",
  "name": "Buzz Settings",

@@ -116,12 +116,12 @@
 		</div>
 
 		<div v-else-if="loadError" class="text-center">
-			<div class="bg-surface-red-1 border border-outline-red-1 rounded-lg p-8">
-				<LucideXCircle class="w-16 h-16 text-ink-red-2 mx-auto mb-4" />
-				<h2 class="text-ink-red-3 font-semibold text-xl mb-2">
+			<div class="bg-surface-amber-1 border border-outline-amber-1 rounded-lg p-8">
+				<LucideAlertCircle class="w-16 h-16 text-ink-amber-3 mx-auto mb-4" />
+				<h2 class="text-ink-amber-3 font-semibold text-xl mb-2">
 					{{ __("Not Found") }}
 				</h2>
-				<p class="text-ink-red-2">
+				<p class="text-ink-amber-2">
 					{{ loadError }}
 				</p>
 			</div>
@@ -163,7 +163,6 @@ import { marked } from "marked";
 import { computed, reactive, ref } from "vue";
 import LucideAlertCircle from "~icons/lucide/alert-circle";
 import LucideCheckCircle from "~icons/lucide/check-circle";
-import LucideXCircle from "~icons/lucide/x-circle";
 
 const props = defineProps({
 	eventRoute: {

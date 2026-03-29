@@ -311,6 +311,7 @@ def get_event_proposal_form_data() -> dict:
 	return {
 		"form_fields": form_fields,
 		"form_title": _("Event Proposal"),
+		"banner_title": settings.event_proposal_banner_title or _("Propose an Event"),
 		"success_title": settings.event_proposal_success_title or _("Thank you!"),
 		"success_message": settings.event_proposal_success_message or "",
 	}
