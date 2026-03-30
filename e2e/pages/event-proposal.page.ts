@@ -1,24 +1,22 @@
 import { expect, Locator, Page } from "@playwright/test";
 
-export class CustomFormPage {
+export class EventProposalPage {
 	private page: Page;
 	private form: Locator;
 	private submitButton: Locator;
 	private successBanner: Locator;
-	private closedBanner: Locator;
-	private errorBanner: Locator;
+	private notFoundBanner: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
 		this.form = page.locator("form");
 		this.submitButton = page.locator('button[type="submit"]').filter({ hasText: /^Submit$/ });
 		this.successBanner = page.locator(".bg-surface-green-1");
-		this.closedBanner = page.locator(".bg-surface-orange-1");
-		this.errorBanner = page.locator(".bg-surface-amber-1");
+		this.notFoundBanner = page.locator(".bg-surface-amber-1");
 	}
 
-	async goto(eventRoute: string, formRoute: string): Promise<void> {
-		await this.page.goto(`/dashboard/events/${eventRoute}/forms/${formRoute}`);
+	async goto(): Promise<void> {
+		await this.page.goto("/dashboard/event-proposal");
 		await this.page.waitForLoadState("networkidle");
 	}
 
@@ -34,15 +32,11 @@ export class CustomFormPage {
 			.first();
 	}
 
-	async submit(): Promise<void> {
-		await this.submitButton.click();
-	}
-
 	async expectFormVisible(): Promise<void> {
 		await expect(this.form).toBeVisible();
 	}
 
-	async expectFormTitle(title: string): Promise<void> {
+	async expectBannerTitle(title: string): Promise<void> {
 		await expect(this.page.locator(`h1:has-text("${title}")`)).toBeVisible();
 	}
 
@@ -52,13 +46,23 @@ export class CustomFormPage {
 
 	async expectSubmitButtonVisible(): Promise<void> {
 		await expect(this.submitButton).toBeVisible();
-		const text = await this.submitButton.textContent();
-		expect(text?.match(/Submit/i)).toBeTruthy();
+	}
+
+	async expectSuccess(): Promise<void> {
+		await expect(this.successBanner).toBeVisible({ timeout: 15000 });
+	}
+
+	async expectNotFound(): Promise<void> {
+		await expect(this.notFoundBanner).toBeVisible({ timeout: 15000 });
+	}
+
+	async submit(): Promise<void> {
+		await this.submitButton.click();
 	}
 
 	async submitAndExpectResponse(): Promise<{ succeeded: boolean; status: number }> {
 		const responsePromise = this.page.waitForResponse(
-			(resp) => resp.url().includes("submit_custom_form"),
+			(resp) => resp.url().includes("submit_event_proposal"),
 			{ timeout: 20000 },
 		);
 
@@ -70,27 +74,8 @@ export class CustomFormPage {
 
 		if (succeeded) {
 			await expect(this.successBanner).toBeVisible({ timeout: 15000 });
-		} else {
-			await expect(this.form).toBeVisible();
 		}
 
 		return { succeeded, status };
-	}
-
-	async expectSuccess(): Promise<void> {
-		await expect(this.successBanner).toBeVisible({ timeout: 15000 });
-	}
-
-	async expectClosed(): Promise<void> {
-		await expect(this.closedBanner).toBeVisible({ timeout: 15000 });
-	}
-
-	async expectNotFound(): Promise<void> {
-		await expect(this.errorBanner).toBeVisible({ timeout: 15000 });
-	}
-
-	async getFieldLabels(): Promise<string[]> {
-		const labels = this.page.locator("form label");
-		return labels.allTextContents();
 	}
 }

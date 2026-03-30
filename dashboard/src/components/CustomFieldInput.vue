@@ -23,6 +23,18 @@
 		/>
 	</div>
 
+	<div v-else-if="field.fieldtype === 'Time'" class="space-y-1.5">
+		<label class="text-xs text-ink-gray-5 block">
+			{{ __(field.label) }}
+			<span v-if="field.mandatory" class="text-ink-red-4">*</span>
+		</label>
+		<TimePicker
+			:model-value="modelValue"
+			@update:model-value="$emit('update:modelValue', $event)"
+			:placeholder="getFieldPlaceholder(field)"
+		/>
+	</div>
+
 	<div v-else-if="field.fieldtype === 'Multi Select'" class="space-y-1.5">
 		<label class="text-xs text-ink-gray-5 block">
 			{{ __(field.label) }}
@@ -165,6 +177,7 @@ import {
 	DatePicker,
 	DateTimePicker,
 	FileUploader,
+	TimePicker,
 	MultiSelect,
 	Rating,
 	Textarea,

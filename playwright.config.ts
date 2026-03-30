@@ -61,7 +61,7 @@ export default defineConfig({
 		},
 		{
 			name: "chromium",
-			testIgnore: /guest-booking|custom-forms|login-modal/,
+			testIgnore: /guest-booking|custom-forms|event-proposal|login-modal/,
 			use: {
 				...devices["Desktop Chrome"],
 				storageState: authFile,
@@ -100,6 +100,23 @@ export default defineConfig({
 				storageState: authFile,
 			},
 			dependencies: ["custom-forms-setup"],
+		},
+		{
+			name: "event-proposal-setup",
+			testMatch: /event-proposal\.setup\.ts/,
+			use: {
+				storageState: authFile,
+			},
+			dependencies: ["setup"],
+		},
+		{
+			name: "event-proposal-chromium",
+			testMatch: /event-proposal\.spec\.ts/,
+			use: {
+				...devices["Desktop Chrome"],
+				storageState: authFile,
+			},
+			dependencies: ["event-proposal-setup"],
 		},
 		{
 			name: "offline-payment-setup",

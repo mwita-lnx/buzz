@@ -2,9 +2,10 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils.data import get_url_to_form
+from frappe.utils.data import get_url_to_form, getdate, today
 
 
 class EventProposal(Document):
@@ -35,9 +36,28 @@ class EventProposal(Document):
 		title: DF.Data
 	# end: auto-generated types
 
+	def validate(self):
+		self.validate_dates()
+		self.validate_times()
+
+	def validate_dates(self):
+		if getdate(self.start_date) < getdate(today()):
+			frappe.throw(_("Start Date cannot be in the past."))
+
+		if self.end_date and getdate(self.end_date) < getdate(self.start_date):
+			frappe.throw(_("End Date cannot be before Start Date."))
+
+	def validate_times(self):
+		if not self.start_time or not self.end_time:
+			return
+
+		same_day = not self.end_date or getdate(self.end_date) == getdate(self.start_date)
+		if same_day and self.end_time <= self.start_time:
+			frappe.throw(_("End Time must be after Start Time for same-day events."))
+
 	def before_submit(self):
 		if self.status not in ("Approved", "Rejected"):
-			frappe.throw(frappe._("Only Approved or Rejected proposals can be submitted."))
+			frappe.throw(_("Only Approved or Rejected proposals can be submitted."))
 
 		self.create_event()
 
@@ -46,7 +66,7 @@ class EventProposal(Document):
 			return
 
 		if not self.host:
-			frappe.throw(frappe._("Please create or set a Host before submitting the proposal."))
+			frappe.throw(_("Please create or set a Host before submitting the proposal."))
 
 		buzz_event = get_mapped_doc(
 			"Event Proposal", self.name, {"Event Proposal": {"doctype": "Buzz Event"}}
@@ -57,7 +77,7 @@ class EventProposal(Document):
 		self.status = "Event Created"
 
 		frappe.msgprint(
-			frappe._("Buzz Event {0} created successfully.").format(
+			_("Buzz Event {0} created successfully.").format(
 				f'<a href="{get_url_to_form("Buzz Event", buzz_event.name)}">{buzz_event.title}</a>'
 			)
 		)

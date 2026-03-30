@@ -9,6 +9,17 @@ from frappe.utils.data import cstr, sbool
 
 LAYOUT_FIELDTYPES = set(display_fieldtypes)
 
+EVENT_PROPOSAL_EXCLUDE_FIELDS = DEFAULT_FIELDS | {
+	"naming_series",
+	"amended_from",
+	"host",
+	"host_company",
+	"host_company_logo",
+	"additional_notes",
+	"status",
+	"submitted_by",
+}
+
 STANDARD_EXCLUDE_FIELDS = DEFAULT_FIELDS | {
 	"additional_fields",
 	"event",
@@ -279,3 +290,55 @@ def submit_custom_form(
 				)
 
 	doc.insert(ignore_permissions=True)
+
+
+def validate_event_proposal_settings():
+	settings = frappe.get_cached_doc("Buzz Settings")
+	if not settings.accept_event_proposals:
+		frappe.throw(_("Event Proposals are not being accepted"), frappe.DoesNotExistError)
+
+	if not settings.allow_guest_event_proposals and frappe.session.user == "Guest":
+		frappe.throw(_("Please log in to submit a proposal"), frappe.AuthenticationError)
+
+	return settings
+
+
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+def get_event_proposal_form_data() -> dict:
+	settings = validate_event_proposal_settings()
+	form_fields = get_form_fields("Event Proposal", EVENT_PROPOSAL_EXCLUDE_FIELDS)
+
+	return {
+		"form_fields": form_fields,
+		"form_title": _("Event Proposal"),
+		"banner_title": settings.event_proposal_banner_title or _("Propose an Event"),
+		"success_title": settings.event_proposal_success_title or _("Thank you!"),
+		"success_message": settings.event_proposal_success_message or "",
+	}
+
+
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+def submit_event_proposal(data: dict | str) -> None:
+	validate_event_proposal_settings()
+
+	data = frappe.parse_json(data) or {}
+
+	doc_data = {"doctype": "Event Proposal"}
+
+	if frappe.session.user != "Guest":
+		doc_data["submitted_by"] = frappe.session.user
+
+	allowed_fieldnames = {
+		f["fieldname"] for f in get_form_fields("Event Proposal", EVENT_PROPOSAL_EXCLUDE_FIELDS)
+	}
+	for fieldname, value in data.items():
+		if fieldname in allowed_fieldnames:
+			doc_data[fieldname] = value
+
+	meta = frappe.get_meta("Event Proposal")
+	for df in meta.fields:
+		if df.fieldtype == "Table" and df.fieldname not in EVENT_PROPOSAL_EXCLUDE_FIELDS:
+			if df.fieldname in data and isinstance(data[df.fieldname], list):
+				doc_data[df.fieldname] = data[df.fieldname]
+
+	frappe.get_doc(doc_data).insert(ignore_permissions=True)
