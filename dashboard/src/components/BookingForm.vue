@@ -93,7 +93,7 @@
 					<p class="text-xs text-ink-gray-5">
 						{{ __("Want to manage your bookings?") }}
 					</p>
-					<Button variant="outline" @click="redirectToLogin">
+					<Button variant="outline" @click="openLoginDialog()">
 						{{ __("Log in to your account") }}
 					</Button>
 				</div>
@@ -397,11 +397,12 @@
 
 <script setup>
 import { useBookingFormStorage } from "@/composables/useBookingFormStorage";
+import { useLoginDialog } from "@/composables/useLoginDialog";
 import { userResource } from "@/data/user";
 import { formatCurrency, formatPriceOrFree } from "@/utils/currency";
-import { clearBookingCache, redirectToLogin } from "@/utils/index";
+import { clearBookingCache } from "@/utils/index";
 import { FormControl, createResource, toast } from "frappe-ui";
-import { computed, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import LucideAlertCircle from "~icons/lucide/alert-circle";
 import LucideCheck from "~icons/lucide/check";
@@ -417,6 +418,7 @@ import PaymentGatewayDialog from "./PaymentGatewayDialog.vue";
 
 const router = useRouter();
 const route = useRoute();
+const { open: openLoginDialog } = useLoginDialog();
 
 const getUtmParameters = () => {
 	const utmParams = [];
@@ -802,26 +804,25 @@ const totalCurrency = computed(() => {
 	return firstTicket ? firstTicket.currency : "INR";
 });
 
-// --- WATCHER ---
 // Initialize with one attendee when component mounts (only if no data in storage)
-watch(
-	() => props.availableTicketTypes,
-	() => {
-		if (attendees.value.length === 0 && props.availableTicketTypes.length > 0) {
-			const newAttendee = createNewAttendee();
+onMounted(async () => {
+	await nextTick();
+	if (attendees.value.length === 0 && props.availableTicketTypes.length > 0) {
+		const newAttendee = createNewAttendee();
 
-			// Pre-populate with current user's information if available
-			if (userResource.data) {
-				newAttendee.first_name = userResource.data.first_name || "";
-				newAttendee.last_name = userResource.data.last_name || "";
-				newAttendee.email = userResource.data.email || "";
-			}
-
-			attendees.value.push(newAttendee);
+		if (guestFirstName.value || guestEmail.value) {
+			newAttendee.first_name = guestFirstName.value;
+			newAttendee.last_name = guestLastName.value;
+			newAttendee.email = guestEmail.value;
+		} else if (userResource.data) {
+			newAttendee.first_name = userResource.data.first_name || "";
+			newAttendee.last_name = userResource.data.last_name || "";
+			newAttendee.email = userResource.data.email || "";
 		}
-	},
-	{ immediate: true }
-);
+
+		attendees.value = [newAttendee];
+	}
+});
 
 // Ensure existing attendees have proper add-on structure when availableAddOns changes
 watch(
@@ -1072,6 +1073,11 @@ const validateForm = () => {
 // --- FORM SUBMISSION ---
 async function submit() {
 	if (processBooking.loading) return;
+
+	if (requiresLogin.value) {
+		openLoginDialog();
+		return;
+	}
 
 	// Validate mandatory fields
 	const validationErrors = validateForm();
@@ -1357,9 +1363,17 @@ function clearOtpState() {
 
 const isWebinar = computed(() => props.eventDetails.category === "Webinars");
 
+const requiresLogin = computed(() => {
+	return props.isGuestMode && !props.eventDetails?.allow_guest_booking;
+});
+
 const submitButtonText = computed(() => {
 	if (processBooking.loading) {
 		return __("Processing...");
+	}
+
+	if (requiresLogin.value) {
+		return __("Book Tickets");
 	}
 
 	if (finalTotal.value > 0) {

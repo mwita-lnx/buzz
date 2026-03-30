@@ -1,4 +1,3 @@
-import router from "@/router"
 import { clearBookingCache } from "@/utils"
 import { createResource } from "frappe-ui"
 import { computed, reactive } from "vue"
@@ -7,10 +6,6 @@ import { userResource } from "./user"
 interface LoginParams {
 	email: string
 	password: string
-}
-
-interface LoginResponse {
-	default_route?: string
 }
 
 export function sessionUser() {
@@ -31,11 +26,10 @@ export const session = reactive({
 				pwd: password,
 			}
 		},
-		onSuccess(data: LoginResponse) {
+		onSuccess() {
 			userResource.reload()
 			session.user = sessionUser()
 			session.login.reset()
-			router.replace(data.default_route || "/")
 		},
 	}),
 	logout: createResource({
@@ -44,8 +38,7 @@ export const session = reactive({
 			userResource.reset()
 			session.user = sessionUser()
 			clearBookingCache()
-			const redirect_to = window.location.pathname + window.location.search
-			window.location.href = `/login?redirect-to=${encodeURIComponent(redirect_to)}`
+			window.location.reload()
 		},
 	}),
 	user: sessionUser(),

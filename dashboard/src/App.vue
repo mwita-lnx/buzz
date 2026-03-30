@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoginDialog from "@/components/LoginDialog.vue";
 import { FrappeUIProvider, setConfig } from "frappe-ui";
 import Layout from "./layouts/Layout.vue";
 
@@ -11,5 +12,6 @@ setConfig("localTimezone", window.timezone?.user || null);
 		<Layout>
 			<router-view />
 		</Layout>
+		<LoginDialog />
 	</FrappeUIProvider>
 </template>

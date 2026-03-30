@@ -12,7 +12,9 @@ export function useBookingFormStorage(eventRoute: string) {
 
 	// Scope storage keys to the specific event route
 	const storageKeyPrefix = `event-booking-${eventRoute}`
-	const attendees = useStorage(`${storageKeyPrefix}-attendees`, [])
+	const attendees = useStorage(`${storageKeyPrefix}-attendees`, [], undefined, {
+		deep: true,
+	})
 	const attendeeIdCounter = useStorage(`${storageKeyPrefix}-counter`, 0)
 	const bookingCustomFields = useStorage(
 		`${storageKeyPrefix}-custom-fields`,

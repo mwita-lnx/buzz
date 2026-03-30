@@ -50,12 +50,10 @@ test.describe("Authentication - Fresh state", () => {
 		await loginPage.expectToBeOnLoginPage();
 	});
 
-	test("should redirect to login when not authenticated", async ({ page }) => {
-		// Try to access protected page without auth
+	test("should show login button when not authenticated", async ({ page }) => {
 		await page.goto("/dashboard");
 		await page.waitForLoadState("networkidle");
 
-		// Should be redirected to login
-		await expect(page).toHaveURL(/.*login.*/);
+		await expect(page.getByRole("button", { name: "Log In" }).first()).toBeVisible();
 	});
 });

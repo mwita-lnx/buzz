@@ -5,21 +5,23 @@
 				{{ __("Login Required") }}
 			</h2>
 			<p class="text-ink-gray-6 mb-6">
-				{{ message }}
+				{{ __(message) }}
 			</p>
-			<Button variant="solid" size="lg" @click="redirectToLogin">{{ __("Log In") }}</Button>
+			<Button variant="solid" size="lg" @click="openLogin">{{ __("Log In") }}</Button>
 		</div>
 	</div>
 </template>
 
 <script setup>
+import { useLoginDialog } from "@/composables/useLoginDialog";
 import { Button } from "frappe-ui";
-import { redirectToLogin } from "@/utils/index";
 
 defineProps({
 	message: {
 		type: String,
-		default: __("Please log in to continue."),
+		default: "Please log in to continue.",
 	},
 });
+
+const { open: openLogin } = useLoginDialog();
 </script>

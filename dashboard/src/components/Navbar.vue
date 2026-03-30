@@ -27,7 +27,7 @@
 				</Button>
 				<Button
 					v-else
-					@click="redirectToLogin"
+					@click="openLoginDialog"
 					icon-right="log-in"
 					variant="ghost"
 					size="md"
@@ -47,10 +47,11 @@ import { session } from "../data/session";
 import LanguageSwitcher from "./LanguageSwitcher.vue";
 import BuzzLogo from "./common/BuzzLogo.vue";
 
-import { redirectToLogin } from "@/utils/index";
+import { useLoginDialog } from "@/composables/useLoginDialog";
 import { useStorage } from "@vueuse/core";
 import { onMounted } from "vue";
 
+const { open: openLoginDialog } = useLoginDialog();
 const userTheme = useStorage("user-theme", "dark");
 
 onMounted(() => {

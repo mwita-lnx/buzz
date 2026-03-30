@@ -22,6 +22,9 @@
   "success_section",
   "event_proposal_success_title",
   "event_proposal_success_message",
+  "login_tab",
+  "login_banner_section",
+  "login_banner",
   "communications_tab",
   "ticketing_emails_section",
   "default_ticket_email_template",
@@ -122,6 +125,22 @@
    "fieldname": "event_proposal_success_message",
    "fieldtype": "Markdown Editor",
    "label": "Success Message"
+  },
+  {
+   "fieldname": "login_tab",
+   "fieldtype": "Tab Break",
+   "label": "Login"
+  },
+  {
+   "fieldname": "login_banner_section",
+   "fieldtype": "Section Break",
+   "label": "Login Banner Config"
+  },
+  {
+   "description": "Promotional message shown in the login/signup modal. Supports Markdown.",
+   "fieldname": "login_banner",
+   "fieldtype": "Markdown Editor",
+   "label": "Login Banner"
   },
   {
    "fieldname": "communications_tab",

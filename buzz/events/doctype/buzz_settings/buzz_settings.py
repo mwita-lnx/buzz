@@ -28,6 +28,7 @@ class BuzzSettings(Document):
 		event_proposal_banner_title: DF.Data | None
 		event_proposal_success_message: DF.MarkdownEditor | None
 		event_proposal_success_title: DF.Data | None
+		login_banner: DF.MarkdownEditor | None
 		support_email: DF.Data | None
 	# end: auto-generated types
 

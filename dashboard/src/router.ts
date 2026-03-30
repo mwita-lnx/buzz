@@ -1,6 +1,5 @@
 import { userResource } from "@/data/user"
 import { type RouteRecordRaw, createRouter, createWebHistory } from "vue-router"
-import { session } from "./data/session"
 
 const routes: RouteRecordRaw[] = [
 	{
@@ -122,25 +121,12 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-	let isLoggedIn = session.isLoggedIn
 	try {
 		await userResource.fetch()
-	} catch (error) {
-		isLoggedIn = false
+	} catch {
+		// user is not logged in — Layout will show LoginRequired for protected routes
 	}
-
-	if (to.meta?.isPublic) {
-		next()
-		return
-	}
-
-	if (to.name === "Login" && isLoggedIn) {
-		next({ name: "dashboard" })
-	} else if (to.name !== "Login" && !isLoggedIn) {
-		window.location.href = `/login?redirect-to=/dashboard${encodeURIComponent(to.fullPath)}`
-	} else {
-		next()
-	}
+	next()
 })
 
 export default router
