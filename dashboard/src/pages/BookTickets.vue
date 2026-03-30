@@ -1,10 +1,10 @@
 <template>
 	<div>
-		<div class="w-8">
-			<Spinner v-if="eventBookingResource.loading" />
+		<div v-if="eventBookingResource.loading" class="flex justify-center py-16">
+			<Spinner class="w-8 h-8" />
 		</div>
 		<div
-			v-if="eventNotFound && !eventBookingResource.loading"
+			v-else-if="eventNotFound"
 			class="flex flex-col items-center justify-center py-16 px-4"
 		>
 			<div class="text-center max-w-md">
@@ -24,7 +24,7 @@
 			</div>
 		</div>
 		<div
-			v-else-if="registrationsClosed && !eventBookingResource.loading"
+			v-else-if="registrationsClosed"
 			class="flex flex-col items-center justify-center py-16 px-4"
 		>
 			<div class="text-center max-w-md">
